@@ -87,6 +87,9 @@ def play(done):
                 if letter not in good_guesses:
                     # if a single letter is not then set found to False
                     found = False
+            # if found was never changed from True to False then
+            ## each letter in secret_word can be found in good_guesses
+            ### and thus the player has won the game 
             if found:
                 draw(bad_guesses, good_guesses, secret_word)
                 print("You win!")
