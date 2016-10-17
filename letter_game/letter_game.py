@@ -5,7 +5,12 @@
 # draw guessed letters and strikes
 # print out win/lose
 
+# part 2
+# be able to clear screen
+
+import os
 import random
+import sys
 
 # make a list of words
 words = [
@@ -22,49 +27,99 @@ words = [
     'melon'
 ]
 
-while True:
-    start = input("Press enter/return to start, or enter Q to quit")
-    if start.lower() == 'q':
-        break
+def clear():
+    # all modern windows computers
+    if os.name == 'nt':
+        os.system('cls')
+    # mac, linux, others
+    else:
+        os.system('clear')
 
-    # pick a random word
+def draw(bad_guesses, good_guesses, secret_word):
+    # clear screen each time
+    clear()
+    # draw Strikes
+    print('Strikes: {}/7'.format(len(bad_guesses)))
+    print('')
+
+    for letter in bad_guesses:
+        print(letter, end=' ')
+    print('\n\n')
+
+    for letter in secret_word:
+        if letter in good_guesses:
+            print(letter, end='')
+        else:
+            print('_', end='')
+    # print blank line since above loop is on single line
+    print('')
+
+def get_guess(bad_guesses, good_guesses):
+    while True:
+        # take guess
+        guess = input("Guess a letter: ").lower()
+        # check rules before returning guess
+        if len(guess) != 1:
+            print("You can only guess a single letter!")
+        elif guess in bad_guesses or guess in good_guesses:
+            print("You've already guessed that letter!")
+        elif not guess.isalpha():
+            print("You can only guess letters!")
+        else:
+            return guess
+
+def play(done):
+    clear()
     secret_word = random.choice(words)
     bad_guesses = []
     good_guesses = []
 
-    while len(bad_guesses) < 7 and len(good_guesses) != len(set(secret_word)):
-        # draw spaces
-        for letter in secret_word:
-            if letter in good_guesses:
-                print(letter, end='')
-            else:
-                print('_', end='')
-        # print blank line since above loop is on single line
-        print('')
-        print('Strikes: {}/7'.format(len(bad_guesses)))
-        print('')
-
-        # take guess
-        guess = input("Guess a letter: ").lower()
-
-        if len(guess) != 1:
-            print("You can only guess a single letter!")
-            continue
-        elif guess in bad_guesses or guess in good_guesses:
-            print("You've already guessed that letter!")
-            continue
-        elif not guess.isalpha():
-            print("You can only guess letters!")
-            continue
+    while True:
+        draw(bad_guesses, good_guesses, secret_word)
+        guess = get_guess(bad_guesses, good_guesses)
 
         if guess in secret_word:
             good_guesses.append(guess)
-            # win if len(good_guesses) == UNIQUE characters in secret_word
-            if len(good_guesses) == len(set(secret_word)):
-                print("You win! The word was {}".format(secret_word))
-                break
+            found = True
+            # iterate through each letter in secret_word
+            for letter in secret_word:
+                # check is each letter is in good_guesses
+                if letter not in good_guesses:
+                    # if a single letter is not then set found to False
+                    found = False
+            if found:
+                draw(bad_guesses, good_guesses, secret_word)
+                print("You win!")
+                print("The secret word was {}".format(secret_word))
+                done = True
         else:
             bad_guesses.append(guess)
+            if len(bad_guesses) == 7:
+                draw(bad_guesses, good_guesses, secret_word)
+                print("You lost!")
+                print("The secret word was {}".format(secret_word))
+                done = True
 
+        if done:
+            play_again = input("Play again? Y/n ").lower()
+            if play_again != 'n':
+                return play(done=False)
+            else:
+                sys.exit()
+
+def welcome():
+    start = input("Press enter/return to start or Q or quit").lower()
+    if start == 'q':
+        print("Bye!")
+        sys.exit()
     else:
-        print("You didn't guess it! My secret word was {}".format(secret_word))
+        return True
+
+print('Welcome to Letter Guess!')
+
+done = False
+
+while True:
+    clear()
+    welcome()
+    play(done)
